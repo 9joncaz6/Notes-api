@@ -1,0 +1,64 @@
+# ============================
+# Ignorer les fichiers sensibles
+# ============================
+
+# Fichiers d'environnement (ne jamais versionner)
+.env
+.env.*
+.env.local
+.env.local.php
+.env.*.local
+
+# ============================
+# Ignorer les fichiers système
+# ============================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# ============================
+# Ignorer les dépendances
+# ============================
+
+# Node.js (si un jour tu ajoutes un frontend buildé)
+node_modules/
+
+# Composer (si tu utilises PHP avec vendor/)
+vendor/
+
+# ============================
+# Ignorer les logs
+# ============================
+
+*.log
+logs/
+storage/logs/
+
+# ============================
+# Ignorer les caches
+# ============================
+
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================
+# Ignorer les fichiers temporaires
+# ============================
+
+*.tmp
+*.temp
+
+# ============================
+# Ignorer les fichiers IDE
+# ============================
+
+# VS Code
+.vscode/
+
+# PHPStorm / WebStorm
+.idea/
