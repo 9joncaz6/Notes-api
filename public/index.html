@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Notes API - Front</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-light">
+
+    <div class="container py-5">
+
+        <nav class="py-3 bg-primary text-white shadow-sm mb-4">
+            <div class="container text-center">
+                <h1 class="m-0">Notes App</h1>
+            </div>
+        </nav>
+
+
+        <!-- Formulaire -->
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4 class="mb-3">Créer une nouvelle note</h4>
+
+            <form id="createForm">
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">Titre</label>
+                    <input type="text" class="form-control" id="title" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="content" class="form-label">Contenu</label>
+                    <textarea class="form-control" id="content" rows="3" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Créer</button>
+
+            </form>
+        </div>
+
+
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div class="d-flex align-items-center gap-2">
+                <label for="noteFilter" class="form-label mb-0">Rechercher par titre :</label>
+                <select id="noteFilter" class="form-select form-select-sm" style="width: 250px;">
+                    <option value="">-- Toutes les notes --</option>
+                </select>
+            </div>
+
+            <button id="sortBtn" class="btn btn-outline-primary btn-sm">
+                Trier A → Z
+            </button>
+
+        </div>
+
+
+
+        <div id="notes"></div>
+
+        <!-- Liste des notes -->
+        <div id="notes" class="mb-5"></div>
+
+    </div>
+
+    <!-- OFFCANVAS  -->
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="noteCanvas">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="noteCanvasTitle"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <p id="noteCanvasContent"></p>
+        </div>
+    </div>
+
+    <!-- MODALE MODIFIER -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier la note</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <label class="form-label">Titre</label>
+                            <input type="text" id="editTitle" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Contenu</label>
+                            <textarea id="editContent" class="form-control" rows="3" required></textarea>
+                        </div>
+
+                        <input type="hidden" id="editId">
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-primary" id="saveEditBtn">Enregistrer</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE SUPPRIMER -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Supprimer la note</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment supprimer cette note ?</p>
+                    <input type="hidden" id="deleteId">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
