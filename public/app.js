@@ -1,27 +1,32 @@
-// URL de base de l’API
-const API_URL = "http://notes-api.test/notes";
+// app.js
+// =====================================================
+// Script principal de l'application Notes
+// =====================================================
 
-// Variables globales utilisées dans toute l’application
-let selectedNoteId = null;   // ID de la note actuellement sélectionnée (pour le style + offcanvas)
-let allNotes = [];           // Tableau contenant toutes les notes chargées depuis l’API
+// Variables globales
+let selectedNoteId = null;   // ID de la note sélectionnée
+let allNotes = [];           // Toutes les notes chargées depuis l’API
 
 
-/**
- * Fonction principale d’affichage des notes.
- * Paramètre fetchFromApi :
- *   - true  → recharge les données depuis l’API
- *   - false → réutilise les données déjà présentes dans allNotes
- */
+
+// =====================================================
+// Fonction principale : chargement + affichage des notes
+// =====================================================
 async function loadNotes(fetchFromApi = true) {
 
-    // Si demandé, on recharge les données depuis l’API
+    // Si demandé → on recharge depuis l’API
     if (fetchFromApi) {
-        const res = await fetch(API_URL);
+        const res = await fetch(window.API_URL, {
+            headers: {
+                "Authorization": window.AUTH_TOKEN
+            }
+        });
+
         const json = await res.json();
-        allNotes = json.data; // On stocke toutes les notes dans la variable globale
+        allNotes = json.data;
     }
 
-    // Sélection du conteneur et réinitialisation
+    // Conteneur principal
     const container = document.getElementById("notes");
     container.innerHTML = "";
 
@@ -32,82 +37,78 @@ async function loadNotes(fetchFromApi = true) {
     // Affichage de chaque note
     allNotes.forEach(note => {
 
-        // Colonne Bootstrap (3 par ligne)
         const col = document.createElement("div");
         col.className = "col-md-4";
 
-        // Card contenant la note
         const card = document.createElement("div");
         card.className = "card p-3 shadow-sm h-100";
         card.style.cursor = "pointer";
 
-        // Style spécial si la note est sélectionnée
+        // Style si sélectionnée
         if (note._id === selectedNoteId) {
             card.classList.add("note-selected");
         }
 
-        // Clic sur la card → sélection + ouverture du offcanvas
+        // Clic → sélection + offcanvas
         card.addEventListener("click", () => {
             selectedNoteId = note._id;
             openNoteCanvas(note);
-            loadNotes(false); // Re-render sans recharger depuis l’API
+            loadNotes(false);
         });
 
-        // Titre de la note
+        // Titre
         const h3 = document.createElement("h3");
         h3.className = "h6 text-primary";
         h3.textContent = note.title;
         card.appendChild(h3);
 
-        // Aperçu du contenu (80 caractères max)
+        // Aperçu contenu
         const p = document.createElement("p");
         p.textContent = note.content.substring(0, 80) + "...";
         card.appendChild(p);
 
-        // Ligne contenant les boutons Modifier / Supprimer
+        // Boutons
         const btnRow = document.createElement("div");
         btnRow.className = "mt-3 d-flex justify-content-between";
 
-        // Bouton Modifier → ouvre la modale d’édition
+        // Modifier (ADMIN ONLY)
         const editBtn = document.createElement("button");
         editBtn.textContent = "Modifier";
-        editBtn.className = "btn btn-warning btn-sm";
+        editBtn.className = "btn btn-warning btn-sm admin-only";
         editBtn.addEventListener("click", (e) => {
-            e.stopPropagation(); // Empêche l’ouverture du offcanvas
+            e.stopPropagation();
             openEditModal(note);
         });
 
-        // Bouton Supprimer → ouvre la modale de confirmation
+        // Supprimer (ADMIN ONLY)
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Supprimer";
-        deleteBtn.className = "btn btn-danger btn-sm";
+        deleteBtn.className = "btn btn-danger btn-sm admin-only";
         deleteBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             openDeleteModal(note._id);
         });
 
-        // Ajout des boutons à la card
         btnRow.appendChild(editBtn);
         btnRow.appendChild(deleteBtn);
         card.appendChild(btnRow);
 
-        // Ajout de la card à la grille
         col.appendChild(card);
         row.appendChild(col);
     });
 
-    // Mise à jour de la liste déroulante (recherche par titre)
     updateNoteFilter();
-
-    // Ajout de la grille au conteneur
     container.appendChild(row);
+
+    // Masquer les boutons selon le rôle
+    applyRoleVisibility();
 }
 
 
 
-
-// Affiche une note dans l’offcanvas latéral
- 
+// =====================================================
+// Offcanvas : affichage d’une note
+// =====================================================
 function openNoteCanvas(note) {
     document.getElementById("noteCanvasTitle").textContent = note.title;
     document.getElementById("noteCanvasContent").textContent = note.content;
@@ -118,40 +119,49 @@ function openNoteCanvas(note) {
 
 
 
-
-// Création d’une nouvelle note
-
+// =====================================================
+// Création d’une note
+// =====================================================
 document.getElementById("createForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
 
-    await fetch(API_URL, {
+    await fetch(window.API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": window.AUTH_TOKEN
+        },
         body: JSON.stringify({ title, content })
     });
 
     document.getElementById("createForm").reset();
-    loadNotes(); // Recharge depuis l’API
+    loadNotes();
 });
 
 
 
-
-// Suppression d’une note (appelée depuis la modale)
- 
+// =====================================================
+// Suppression d’une note
+// =====================================================
 async function deleteNote(id) {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    loadNotes(); // Recharge depuis l’API
+    await fetch(`${window.API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": window.AUTH_TOKEN
+        }
+    });
+
+    loadNotes();
 }
 
 
 
-
-// Ouvre la modale d’édition avec les données pré-remplies
-
+// =====================================================
+// Modale d’édition
+// =====================================================
 function openEditModal(note) {
     document.getElementById("editId").value = note._id;
     document.getElementById("editTitle").value = note.title;
@@ -163,29 +173,32 @@ function openEditModal(note) {
 
 
 
-
-// Sauvegarde des modifications d’une note
- 
+// =====================================================
+// Sauvegarde des modifications
+// =====================================================
 document.getElementById("saveEditBtn").addEventListener("click", async () => {
     const id = document.getElementById("editId").value;
     const title = document.getElementById("editTitle").value;
     const content = document.getElementById("editContent").value;
 
-    await fetch(`${API_URL}/${id}`, {
+    await fetch(`${window.API_URL}/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": window.AUTH_TOKEN
+        },
         body: JSON.stringify({ title, content })
     });
 
     bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
-    loadNotes(); // Recharge depuis l’API
+    loadNotes();
 });
 
 
 
-
-// Ouvre la modale de confirmation de suppression
-
+// =====================================================
+// Modale de suppression
+// =====================================================
 function openDeleteModal(id) {
     document.getElementById("deleteId").value = id;
 
@@ -193,41 +206,38 @@ function openDeleteModal(id) {
     modal.show();
 }
 
-
-
-
-// Confirmation de suppression
- 
 document.getElementById("confirmDeleteBtn").addEventListener("click", async () => {
     const id = document.getElementById("deleteId").value;
 
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    await fetch(`${window.API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": window.AUTH_TOKEN
+        }
+    });
 
     bootstrap.Modal.getInstance(document.getElementById("deleteModal")).hide();
-    loadNotes(); // Recharge depuis l’API
+    loadNotes();
 });
 
 
 
-
-// Met à jour la liste déroulante contenant les titres des notes
- 
+// =====================================================
+// Filtre par titre
+// =====================================================
 function updateNoteFilter() {
     const select = document.getElementById("noteFilter");
     select.innerHTML = "";
 
-    // Option par défaut
     const defaultOption = document.createElement("option");
     defaultOption.value = "";
     defaultOption.textContent = "-- Toutes les notes --";
     select.appendChild(defaultOption);
 
-    // Tri alphabétique pour un affichage propre
     const sortedNotes = [...allNotes].sort((a, b) =>
         a.title.localeCompare(b.title)
     );
 
-    // Ajout d’une option par note
     sortedNotes.forEach(note => {
         const option = document.createElement("option");
         option.value = note._id;
@@ -236,39 +246,49 @@ function updateNoteFilter() {
     });
 }
 
-
-
-
- // Filtrage par titre via la liste déroulante
-
 document.getElementById("noteFilter").addEventListener("change", () => {
     const selectedId = document.getElementById("noteFilter").value;
 
-    // Affichage de toutes les notes
     if (selectedId === "") {
         selectedNoteId = null;
-        loadNotes(); // Recharge depuis l’API
+        loadNotes();
         return;
     }
 
-    // Sélection d’une note précise
     selectedNoteId = selectedId;
-
     const note = allNotes.find(n => n._id === selectedId);
 
-    loadNotes(false); // Re-render sans refetch
+    loadNotes(false);
     openNoteCanvas(note);
 });
 
 
 
-//Tri alphabétique A → Z
+// =====================================================
+// Tri alphabétique
+// =====================================================
 document.getElementById("sortBtn").addEventListener("click", () => {
     allNotes.sort((a, b) => a.title.localeCompare(b.title));
-    loadNotes(false); // Re-render sans refetch
+    loadNotes(false);
 });
 
 
 
-// Chargement initial des notes
+function applyRoleVisibility() {
+    const role = localStorage.getItem("role");
+
+    if (role !== "admin") {
+        document.querySelectorAll(".admin-only").forEach(el => {
+            el.style.display = "none";
+        });
+    }
+}
+
+
+
+
+
+// =====================================================
+// Chargement initial
+// =====================================================
 loadNotes();
